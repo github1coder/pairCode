@@ -27,7 +27,10 @@ int getwords(string filePath, string words[]) {
 		p = strtok(datastr, d);
 		while (p)
 		{
-			words[count++] = p;
+			if (p.size() > 1) {
+				transform(p.begin(), p.end(), p.begin(), ::tolower);
+				words[count++] = p;
+			}
 			p = strtok(NULL, d);
 		}
 	}
