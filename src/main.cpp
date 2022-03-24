@@ -4,6 +4,7 @@
 #include <fstream>
 #include <regex>
 #include <algorithm>
+
 using namespace std;
 int getwords(string filePath, string words[]) {
 	int count = 0;
@@ -55,8 +56,8 @@ void handleOutput(string wordLinks[], int wordLinksSize, char type) {
 		int maxCount = 0;
 		for (int i = 0; i < wordLinksSize; i++) {
 			int blankCount = count(wordLinks[i].begin(), wordLinks[i].end(), ' ');
-			if (blankCount > maxCount) {
-				maxCount = blankCount;
+			if (blankCount + 1 > maxCount) {
+				maxCount = blankCount + 1;
 				maxIndex = i;
 			}
 		}
@@ -101,8 +102,8 @@ void handleOutput(string wordLinks[], int wordLinksSize, char type) {
 					blankCount++;
 				}
 			}
-			if (flag && blankCount > maxCount) {
-				maxCount = blankCount;
+			if (flag && blankCount + 1 > maxCount) {
+				maxCount = blankCount + 1;
 				maxIndex = i;
 			}
 		}
@@ -127,7 +128,7 @@ void handleOutput(string wordLinks[], int wordLinksSize, char type) {
 			int blankCount = count(wordLinks[i].begin(), wordLinks[i].end(), ' ');
 			int len = wordLinks[i].size() - blankCount;
 			if (len > maxCount) {
-				len = blankCount;
+				maxCount = len;
 				maxIndex = i;
 			}
 		}
@@ -161,7 +162,7 @@ int main(int argc, char* argv[])
 		if (argv[count][0] == '-') {
 			if (argv[count][1] == 'n' || argv[count][1] == 'w' || argv[count][1] == 'm' || argv[count][1] == 'c') {
 				type = argv[count][1];
-				filePath = argv[++count];
+				//filePath = argv[++count];
 			}
 			else if (argv[count][1] == 'h') {
 				h = argv[++count][0];
@@ -173,9 +174,9 @@ int main(int argc, char* argv[])
 				r = 1;
 			}
 		}
-		//		else {
-		//			filePath = argv[count];
-		//		}
+		else {
+			filePath = argv[count];
+		}
 	}
 
 	//得到单词数组
