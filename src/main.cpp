@@ -9,12 +9,12 @@
 using namespace std;
 int getwords(string filePath, string words[]) {
 	int count = 0;
-	if (filePath.find(".txt")) {
+	if (!filePath.find(".txt")) {
 		throw "文件不合法";
 	}
 	ifstream infile;
 	infile.open(filePath.c_str(), ios::in);
-	
+
 	if (!infile) {
 		throw "文件不存在";
 	}
@@ -49,7 +49,7 @@ int getwords(string filePath, string words[]) {
 void handleOutput(string wordLinks[], int wordLinksSize, char type) {
 	if (type == 'n') {
 		cout << wordLinksSize;
-		for (int i = 0; i < wordLinks.size(); i++) {
+		for (int i = 0; i < wordLinksSize; i++) {
 			cout << endl << wordLinks[i];
 		}
 		return;
@@ -90,16 +90,19 @@ void handleOutput(string wordLinks[], int wordLinksSize, char type) {
 		int maxIndex = -1;
 		int maxCount = 0;
 		int blankCount;
+		//		for (int i = 0; i < wordLinksSize; i++) {
+		//			cout << wordLinks[i] << endl;	
+		//		}  
 		for (int i = 0; i < wordLinksSize; i++) {
 			blankCount = 0;
 			bool flag = true;
 			bool blank = true;
 			int fletter[26] = { 0 };
 			string wordLink = wordLinks[i];
-			for (int j = 0; j < wordLink.size(); i++) {
+			for (int j = 0; j < wordLink.size(); j++) {
 				if (blank) {
 					blank = false;
-					int index = wordLink[i] <= 90 ? wordLink[i] + 32 - 97 : wordLink[i] - 97;
+					int index = wordLink[j] <= 90 ? wordLink[j] + 32 - 97 : wordLink[j] - 97;
 					if (fletter[index] != 0) {
 						flag = false;
 						break;
@@ -108,8 +111,8 @@ void handleOutput(string wordLinks[], int wordLinksSize, char type) {
 						fletter[index] = 1;
 					}
 				}
-				else if (wordLink[i] == ' ') {
-					blank = false;
+				else if (wordLink[j] == ' ') {
+					blank = true;
 					blankCount++;
 				}
 			}
@@ -176,8 +179,8 @@ int getOneLink(Edge* edge[26][26], int r, int bline, vector<vector<int>>& edgeWe
 		Edge* e = edge[line][n];
 		if (line != n) {
 			if (isR[n] == 1 && r == 0) {
-				cout << "存在单词环" << endl;
-
+				//cout << "存在单词环" << endl;
+				throw "存在单词环";
 			}
 		}
 		vector<string>eW = e->edgeWords;
@@ -191,7 +194,7 @@ int getOneLink(Edge* edge[26][26], int r, int bline, vector<vector<int>>& edgeWe
 				*eUit = 1;
 				sstr = sstr + " " + w;
 
-				wl=getOneLink(edge, r, n, edgeWeight, sstr, circle + 1, t, isR, wordLinks, wl);
+				wl = getOneLink(edge, r, n, edgeWeight, sstr, circle + 1, t, isR, wordLinks, wl);
 				*eUit = 0;
 				sstr = sstr.substr(0, sstr.length() - w.length() - 1);
 			}
@@ -218,7 +221,7 @@ int getOneLink(Edge* edge[26][26], int r, int bline, vector<vector<int>>& edgeWe
 	return wl;
 }
 
-int getWordLinks(string words[], int wordsSize, char h, char t, int r, string wordLinks[]) {  //测试 
+int getWordLinks(string words[], int wordsSize, char h, char t, int r, string wordLinks[]) {
 	Edge* edge[26][26];
 	vector<vector<int>> edgeWeight(26);//二维数组，记录各首字母开头的单词个数，便于查找是否存在这样的词，并记录这些词的尾字母。
 
@@ -262,6 +265,8 @@ int main(int argc, char* argv[])
 	char h = '0'; //h
 	char t = '0'; //t
 	int r = 0; //r
+//	string filePath = "C:\\Users\\superzzy\\Desktop\\paircode\\test.txt";
+//	type = 'm';
 	string filePath;
 	try {
 		//处理命令行参数
@@ -294,7 +299,8 @@ int main(int argc, char* argv[])
 		int wordLinksSize = getWordLinks(words, wordsSize, h, t, r, wordLinks);
 		//根据参数处理文件输出 
 		handleOutput(wordLinks, wordLinksSize, type);
-	}	catch (const char* msg) {
+	}
+	catch (const char* msg) {
 		cerr << msg << endl;
 	}
 	return 0;
