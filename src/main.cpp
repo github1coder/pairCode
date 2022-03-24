@@ -4,13 +4,20 @@
 #include <fstream>
 #include <regex>
 #include <algorithm>
+#include <cstring>
 
 using namespace std;
 int getwords(string filePath, string words[]) {
 	int count = 0;
-
+	if (filePath.find(".txt")) {
+		throw "文件不合法";
+	}
 	ifstream infile;
 	infile.open(filePath.c_str(), ios::in);
+	
+	if (!infile) {
+		throw "文件不存在";
+	}
 	string data;
 
 	string pattern = "[^a-zA-Z]";
@@ -28,8 +35,8 @@ int getwords(string filePath, string words[]) {
 		p = strtok(datastr, d);
 		while (p)
 		{
-			if (p.size() > 1) {
-				transform(p.begin(), p.end(), p.begin(), ::tolower);
+			if (strlen(p) > 1) {
+				p = strlwr(p);
 				words[count++] = p;
 			}
 			p = strtok(NULL, d);
@@ -40,6 +47,13 @@ int getwords(string filePath, string words[]) {
 }
 
 void handleOutput(string wordLinks[], int wordLinksSize, char type) {
+	if (type == 'n') {
+		cout << wordLinksSize;
+		for (int i = 0; i < wordLinks.size(); i++) {
+			cout << endl << wordLinks[i];
+		}
+		return;
+	}
 	const char* fname = ".\\solution.txt";
 	ofstream fs;
 	fs.open(fname, ios::out);
@@ -48,10 +62,7 @@ void handleOutput(string wordLinks[], int wordLinksSize, char type) {
 		//创建文件
 		ofstream fs(fname);
 	}
-	if (type == 'n') {
-		fs << wordLinksSize;
-	}
-	else if (type == 'w') {
+	if (type == 'w') {
 		int maxIndex = -1;
 		int maxCount = 0;
 		for (int i = 0; i < wordLinksSize; i++) {
@@ -157,35 +168,39 @@ int main(int argc, char* argv[])
 	char t = '0'; //t
 	int r = 0; //r
 	string filePath;
-	//处理命令行参数
-	for (int count = 1; count < argc; count++) {
-		if (argv[count][0] == '-') {
-			if (argv[count][1] == 'n' || argv[count][1] == 'w' || argv[count][1] == 'm' || argv[count][1] == 'c') {
-				type = argv[count][1];
-				//filePath = argv[++count];
+	try {
+		//处理命令行参数
+		for (int count = 1; count < argc; count++) {
+			if (argv[count][0] == '-') {
+				if (argv[count][1] == 'n' || argv[count][1] == 'w' || argv[count][1] == 'm' || argv[count][1] == 'c') {
+					type = argv[count][1];
+					//filePath = argv[++count];
+				}
+				else if (argv[count][1] == 'h') {
+					h = argv[++count][0];
+				}
+				else if (argv[count][1] == 't') {
+					t = argv[++count][0];
+				}
+				else if (argv[count][1] == 'r') {
+					r = 1;
+				}
 			}
-			else if (argv[count][1] == 'h') {
-				h = argv[++count][0];
-			}
-			else if (argv[count][1] == 't') {
-				t = argv[++count][0];
-			}
-			else if (argv[count][1] == 'r') {
-				r = 1;
+			else {
+				filePath = argv[count];
 			}
 		}
-		else {
-			filePath = argv[count];
-		}
-	}
 
-	//得到单词数组
-	string words[10000];
-	int wordsSize = getwords(filePath, words);
-	//得到单词链数组 
-	string wordLinks[10000];
-	int wordLinksSize = getWordLinks(words, wordsSize, h, t, r, wordLinks);
-	//根据参数处理文件输出 
-	handleOutput(wordLinks, wordLinksSize, type);
+		//得到单词数组
+		string words[10000];
+		int wordsSize = getwords(filePath, words);
+		//得到单词链数组 
+		string wordLinks[10000];
+		int wordLinksSize = getWordLinks(words, wordsSize, h, t, r, wordLinks);
+		//根据参数处理文件输出 
+		handleOutput(wordLinks, wordLinksSize, type);
+	}	catch (const char* msg) {
+		cerr << msg << endl;
+	}
 	return 0;
 }
