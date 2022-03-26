@@ -169,20 +169,12 @@ struct Edge
 //r直接新建boolean数组来判定是否访问过，在首字母阶段判断，防止出现开头结尾字母一样的情况
 int getOneLink(Edge* edge[26][26], int r, int bline, vector<vector<int>>& edgeWeight, string sstr, int circle, char t, int isR[], string wordLinks[], int wl) {
 	int line = bline;
-	int eNum = edgeWeight[line].size();
-	int iNum = eNum;
-	isR[line] = 1;
+	isR[line]++;
 	vector<int>::iterator eWit;
 	sort(edgeWeight[line].begin(), edgeWeight[line].end());
-	for (eWit = edgeWeight[line].begin(); eWit != edgeWeight[line].end(); eWit++) {
+	for (eWit = edgeWeight[line].begin(); eWit != edgeWeight[line].end();) {
 		int n = *eWit;
 		Edge* e = edge[line][n];
-		if (line != n) {
-			if (isR[n] == 1 && r == 0) {
-				//cout << "存在单词环" << endl;
-				throw "存在单词环";
-			}
-		}
 		vector<string>eW = e->edgeWords;
 		vector<string>::iterator eWordIt;
 		vector<int>::iterator eUit;
@@ -191,17 +183,38 @@ int getOneLink(Edge* edge[26][26], int r, int bline, vector<vector<int>>& edgeWe
 			string w = *eWordIt;
 			int u = *eUit;
 			if (u == 0) {
+				if (line != n) {
+					if (isR[n] == 1 && r == 0) {
+						//cout << "存在单词环" << endl;
+						throw"存在单词环";
+					}
+				}
+				else {
+					if (isR[n] > 1 && r == 0) {
+						//cout << "存在单词环" << endl;
+						throw"存在单词环";
+					}
+				}
 				*eUit = 1;
 				sstr = sstr + " " + w;
 
-				wl = getOneLink(edge, r, n, edgeWeight, sstr, circle + 1, t, isR, wordLinks, wl);
+				wl=getOneLink(edge, r, n, edgeWeight, sstr, circle + 1, t, isR, wordLinks, wl);
 				*eUit = 0;
-				sstr = sstr.substr(0, sstr.length() - w.length() - 1);
+				sstr = sstr.substr(0, sstr.length() - w.length());
+				sstr = sstr.substr(0, sstr.length() - 1);
+				eUit++;
+				if (eWit != edgeWeight[line].end())
+					eWit++;
+			}
+			else if (u == 1) {
+				eUit++;
+				if (eWit != edgeWeight[line].end())
+					eWit++;
 			}
 		}
 
 	}
-	isR[line] = 0;
+	isR[line]--;
 	if (circle > 1) {
 		if (t <= 'z' && t >= 'a') {
 			if (sstr[sstr.length() - 1] == t) {
@@ -221,7 +234,7 @@ int getOneLink(Edge* edge[26][26], int r, int bline, vector<vector<int>>& edgeWe
 	return wl;
 }
 
-int getWordLinks(string words[], int wordsSize, char h, char t, int r, string wordLinks[]) {
+int getWordLinks(string words[], int wordsSize, char h, char t, int r, string wordLinks[]) { 
 	Edge* edge[26][26];
 	vector<vector<int>> edgeWeight(26);//二维数组，记录各首字母开头的单词个数，便于查找是否存在这样的词，并记录这些词的尾字母。
 
