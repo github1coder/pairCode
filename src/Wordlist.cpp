@@ -34,11 +34,14 @@ int getwords(string filePath, char* words[]) {
 		const char* d = " ";
 		char* p;
 		p = strtok(datastr, d);
+		char* tt;
 		while (p)
 		{
 			if (strlen(p) > 1) {
 				p = strlwr(p);
-				words[count++] = p;
+				tt = new char[strlen(p) + 1];
+				strcpy(tt, p);
+				words[count++] = tt;
 			}
 			p = strtok(NULL, d);
 		}
@@ -121,6 +124,7 @@ int main(int argc, char* argv[])
 	char t = '0'; //t
 	int r = 0; //r
 	string filePath;
+
 	try {
 		//处理命令行参数
 		for (int count = 1; count < argc; count++) {

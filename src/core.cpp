@@ -133,15 +133,18 @@ void stringToChars(string wordLink, char* result[]) {
 	char* p;
 	int count = 0;
 	p = strtok(wordLinkstr, d);
+	char* tt;
 	while (p)
 	{
-		result[count++] = p;
+		tt = new char[strlen(p) + 1];
+		strcpy(tt, p);
+		result[count++] = tt;
 		p = strtok(NULL, d);
 	}
 }
 
 int gen_chain_word(char* words[], int len, char* result[], char head, char tail, bool enable_loop) { //最多单词数量，w 
-	string wordLinks[10000];
+	string wordLinks[20000];
 	int r = enable_loop ? 1 : 0;
 	int wordLinksSize = getWordLinks(words, len, head, tail, r, wordLinks);
 	int maxIndex = -1;
@@ -158,14 +161,19 @@ int gen_chain_word(char* words[], int len, char* result[], char head, char tail,
 }
 
 int gen_chains_all(char* words[], int len, char* result[]) { //返回单词链的总数，n 
-	string wordLinks[10000];
+	string wordLinks[20000];
 	int wordLinksSize = getWordLinks(words, len, 0, 0, false, wordLinks);
-
+	char* tt;
+	for (int i = 0; i < wordLinksSize; i++) {
+		tt = new char[strlen(wordLinks[i].c_str()) + 1];
+		strcpy(tt, wordLinks[i].c_str());
+		result[i] = tt;
+	}
 	return wordLinksSize;
 }
 
 int gen_chain_word_unique(char* words[], int len, char* result[]) { //首字母不同的最多单词数量，m
-	string wordLinks[10000];
+	string wordLinks[20000];
 	int wordLinksSize = getWordLinks(words, len, 0, 0, false, wordLinks);
 	int maxIndex = -1;
 	int maxCount = 0;
@@ -203,16 +211,18 @@ int gen_chain_word_unique(char* words[], int len, char* result[]) { //首字母不同
 }
 
 int gen_chain_char(char* words[], int len, char* result[], char head, char tail, bool enable_loop) { //最多字母数量，c 
-	string wordLinks[10000];
+	string wordLinks[20000];
 	int r = enable_loop ? 1 : 0;
 	int wordLinksSize = getWordLinks(words, len, head, tail, r, wordLinks);
 	int maxIndex = -1;
 	int maxCount = 0;
+	int maxlen = 0;
 	for (int i = 0; i < wordLinksSize; i++) {
 		int blankCount = count(wordLinks[i].begin(), wordLinks[i].end(), ' ');
 		int len = wordLinks[i].size() - blankCount;
-		if (len > maxCount) {
-			maxCount = len;
+		if (len > maxlen) {
+			maxlen = len;
+			maxCount = blankCount + 1;
 			maxIndex = i;
 		}
 	}
