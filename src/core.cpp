@@ -1,52 +1,35 @@
+#include "core.h"
 #include <iostream>
+#include <string.h>
+#include <stdio.h>
+#include <fstream>
+#include <regex>
 #include <algorithm>
+#include <cstring>
 
-class Core
+using namespace std;
+
+struct Edge
 {
-public:
-	// ³ÉÔ±º¯ÊıÉùÃ÷
-	int gen_chain_word(char* words[], int len, char result[], char head, char tail, bool enable_loop);
-	int gen_chains_all(char* words[], int len, char result[]);
-	int gen_chain_word_unique(char* words[], int len, char result[]);
-	int gen_chain_char(char* words[], int len, char result[], char head, char tail, bool enable_loop);
-private:
-	struct Edge
-	{
-		int edgeNum = 0;
-		int initNum = 0;
-		vector<string>edgeWords;
-		vector<int>edgeUse;
-		//ÒÔÁ¬½ÓÁ½×ÖÄ¸µÄµ¥´Ê×÷Îª±ß£¬¼ÇÂ¼±ßµÄÊıÁ¿¼°ÏàÓ¦µ¥´Ê
-	};
-	int getWordLinks(string words[], int wordsSize, char h, char t, int r, string wordLinks[]);
-	int getOneLink(Edge* edge[26][26], int r, int bline, vector<vector<int>>& edgeWeight, string sstr, int circle, char t, int isR[], string wordLinks[], int wl);
+	int edgeNum = 0;
+	int initNum = 0;
+	vector<string>edgeWords;
+	vector<int>edgeUse;
+	//ÒÔÁ¬½ÓÁ½×ÖÄ¸µÄµ¥´Ê×÷Îª±ß£¬¼ÇÂ¼±ßµÄÊıÁ¿¼°ÏàÓ¦µ¥´Ê
 };
-int Core::getWordLinks(string words[], int wordsSize, char h, char t, bool r, string wordLinks[]) {
-	//h,t,rĞèÒª¸ü¸Ä 
-	for (int i = 0; i < wordsSize; i++) {
-		wordLinks[i] = words[i];
-	}
-	return wordsSize;
-}
+
+
 // ³ÉÔ±º¯Êı¶¨Òå
 //ÓÃµü´úÆ÷±éÀú¡¢É¾¼õ¡¢Ôö¼Óµ¥´Ê£¬¸Äµôwhile
 //rÖ±½ÓĞÂ½¨booleanÊı×éÀ´ÅĞ¶¨ÊÇ·ñ·ÃÎÊ¹ı£¬ÔÚÊ××ÖÄ¸½×¶ÎÅĞ¶Ï£¬·ÀÖ¹³öÏÖ¿ªÍ·½áÎ²×ÖÄ¸Ò»ÑùµÄÇé¿ö
 int getOneLink(Edge* edge[26][26], int r, int bline, vector<vector<int>>& edgeWeight, string sstr, int circle, char t, int isR[], string wordLinks[], int wl) {
 	int line = bline;
-	int eNum = edgeWeight[line].size();
-	int iNum = eNum;
-	isR[line] = 1;
+	isR[line]++;
 	vector<int>::iterator eWit;
 	sort(edgeWeight[line].begin(), edgeWeight[line].end());
-	for (eWit = edgeWeight[line].begin(); eWit != edgeWeight[line].end(); eWit++) {
+	for (eWit = edgeWeight[line].begin(); eWit != edgeWeight[line].end();) {
 		int n = *eWit;
 		Edge* e = edge[line][n];
-		if (line != n) {
-			if (isR[n] == 1 && r == 0) {
-				//cout << "´æÔÚµ¥´Ê»·" << endl;
-				throw "´æÔÚµ¥´Ê»·";
-			}
-		}
 		vector<string>eW = e->edgeWords;
 		vector<string>::iterator eWordIt;
 		vector<int>::iterator eUit;
@@ -55,17 +38,38 @@ int getOneLink(Edge* edge[26][26], int r, int bline, vector<vector<int>>& edgeWe
 			string w = *eWordIt;
 			int u = *eUit;
 			if (u == 0) {
+				if (line != n) {
+					if (isR[n] == 1 && r == 0) {
+						//cout << "´æÔÚµ¥´Ê»·" << endl;
+						throw"´æÔÚµ¥´Ê»·";
+					}
+				}
+				else {
+					if (isR[n] > 1 && r == 0) {
+						//cout << "´æÔÚµ¥´Ê»·" << endl;
+						throw"´æÔÚµ¥´Ê»·";
+					}
+				}
 				*eUit = 1;
 				sstr = sstr + " " + w;
 
 				wl = getOneLink(edge, r, n, edgeWeight, sstr, circle + 1, t, isR, wordLinks, wl);
 				*eUit = 0;
-				sstr = sstr.substr(0, sstr.length() - w.length() - 1);
+				sstr = sstr.substr(0, sstr.length() - w.length());
+				sstr = sstr.substr(0, sstr.length() - 1);
+				eUit++;
+				if (eWit != edgeWeight[line].end())
+					eWit++;
+			}
+			else if (u == 1) {
+				eUit++;
+				if (eWit != edgeWeight[line].end())
+					eWit++;
 			}
 		}
 
 	}
-	isR[line] = 0;
+	isR[line]--;
 	if (circle > 1) {
 		if (t <= 'z' && t >= 'a') {
 			if (sstr[sstr.length() - 1] == t) {
@@ -85,7 +89,7 @@ int getOneLink(Edge* edge[26][26], int r, int bline, vector<vector<int>>& edgeWe
 	return wl;
 }
 
-int getWordLinks(string words[], int wordsSize, char h, char t, int r, string wordLinks[]) {
+int getWordLinks(char* words[], int wordsSize, char h, char t, int r, string wordLinks[]) {
 	Edge* edge[26][26];
 	vector<vector<int>> edgeWeight(26);//¶şÎ¬Êı×é£¬¼ÇÂ¼¸÷Ê××ÖÄ¸¿ªÍ·µÄµ¥´Ê¸öÊı£¬±ãÓÚ²éÕÒÊÇ·ñ´æÔÚÕâÑùµÄ´Ê£¬²¢¼ÇÂ¼ÕâĞ©´ÊµÄÎ²×ÖÄ¸¡£
 
@@ -122,9 +126,24 @@ int getWordLinks(string words[], int wordsSize, char h, char t, int r, string wo
 	}
 	return wl;
 }
-int Core::gen_chain_word(char* words[], int len, char result[], char head, char tail, bool enable_loop) { //×î¶àµ¥´ÊÊıÁ¿£¬w 
-	String wordLinks[10000];
-	int wordLinksSize = getWordLinks(words, len, head, tail, enable_loop, wordLinks);
+
+void stringToChars(string wordLink, char* result[]) {
+	char* wordLinkstr = (char*)wordLink.c_str();
+	const char* d = " ";
+	char* p;
+	int count = 0;
+	p = strtok(wordLinkstr, d);
+	while (p)
+	{
+		result[count++] = p;
+		p = strtok(NULL, d);
+	}
+}
+
+int gen_chain_word(char* words[], int len, char* result[], char head, char tail, bool enable_loop) { //×î¶àµ¥´ÊÊıÁ¿£¬w 
+	string wordLinks[10000];
+	int r = enable_loop ? 1 : 0;
+	int wordLinksSize = getWordLinks(words, len, head, tail, r, wordLinks);
 	int maxIndex = -1;
 	int maxCount = 0;
 	for (int i = 0; i < wordLinksSize; i++) {
@@ -134,18 +153,23 @@ int Core::gen_chain_word(char* words[], int len, char result[], char head, char 
 			maxIndex = i;
 		}
 	}
-	result = wordLinks[maxIndex];
+	stringToChars(wordLinks[maxIndex], result);
 	return maxCount;
 }
-int Core::gen_chains_all(char* words[], int len, char* result[]) { //·µ»Øµ¥´ÊÁ´µÄ×ÜÊı£¬n 
-	int wordLinksSize = gen_chain_char(words, len, result, 0, 0, false);
+
+int gen_chains_all(char* words[], int len, char* result[]) { //·µ»Øµ¥´ÊÁ´µÄ×ÜÊı£¬n 
+	string wordLinks[10000];
+	int wordLinksSize = getWordLinks(words, len, 0, 0, false, wordLinks);
+
 	return wordLinksSize;
 }
-int Core::gen_chain_word_unique(char* words[], int len, char result[]) { //Ê××ÖÄ¸²»Í¬µÄ×î¶àµ¥´ÊÊıÁ¿£¬m
-	String wordLinks[10000];
-	int wordLinksSize = getWordLinks(words, len, head, tail, enable_loop, wordLinks);
+
+int gen_chain_word_unique(char* words[], int len, char* result[]) { //Ê××ÖÄ¸²»Í¬µÄ×î¶àµ¥´ÊÊıÁ¿£¬m
+	string wordLinks[10000];
+	int wordLinksSize = getWordLinks(words, len, 0, 0, false, wordLinks);
 	int maxIndex = -1;
 	int maxCount = 0;
+	int blankCount;
 	for (int i = 0; i < wordLinksSize; i++) {
 		blankCount = 0;
 		bool flag = true;
@@ -174,12 +198,14 @@ int Core::gen_chain_word_unique(char* words[], int len, char result[]) { //Ê××ÖÄ
 			maxIndex = i;
 		}
 	}
-	result = wordLinks[maxIndex];
+	stringToChars(wordLinks[maxIndex], result);
 	return maxCount;
 }
-int Core::gen_chain_char(char* words[], int len, char result[], char head, char tail, bool enable_loop) { //×î¶à×ÖÄ¸ÊıÁ¿£¬c 
-	String wordLinks[10000];
-	int wordLinksSize = getWordLinks(words, len, head, tail, enable_loop, wordLinks);
+
+int gen_chain_char(char* words[], int len, char* result[], char head, char tail, bool enable_loop) { //×î¶à×ÖÄ¸ÊıÁ¿£¬c 
+	string wordLinks[10000];
+	int r = enable_loop ? 1 : 0;
+	int wordLinksSize = getWordLinks(words, len, head, tail, r, wordLinks);
 	int maxIndex = -1;
 	int maxCount = 0;
 	for (int i = 0; i < wordLinksSize; i++) {
@@ -190,6 +216,6 @@ int Core::gen_chain_char(char* words[], int len, char result[], char head, char 
 			maxIndex = i;
 		}
 	}
-	result = wordLinks[maxIndex];
+	stringToChars(wordLinks[maxIndex], result);
 	return maxCount;
 }
