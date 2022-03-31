@@ -8,6 +8,7 @@
 #include <Windows.h>
 
 using namespace std;
+
 int getwords(string filePath, char* words[]) {
 	int count = 0;
 	if (!filePath.find(".txt")) {
