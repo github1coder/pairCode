@@ -9,16 +9,42 @@
 
 using namespace std;
 
+class MyException {
+public:
+	MyException(string s, int flag) : str(s), my_flag(flag) { };
+public:
+	void what() const;  //获取具体的错误信息
+private:
+	string str;
+	int my_flag;
+};
+
+void MyException::what() const {
+	if (my_flag == 1)
+	{
+		cout << "参数错误，未定义的参数名：" << str << endl;
+	}
+	else if (my_flag == 2) {
+		cout << str << endl;
+	}
+	else if (my_flag == 3) {
+		cout << "参数错误，以下参数产生输出冲突：" << str << endl;
+	}
+	else if (my_flag == 5) {
+		cout << "参数" << str << "后非单个英文字母" << endl;
+	}
+}
+
 int getwords(string filePath, char* words[]) {
 	int count = 0;
-	if (!filePath.find(".txt")) {
-		throw "文件不合法";
+	if (filePath.find(".txt") == filePath.npos) {
+		throw MyException("文件不合法", 2);
 	}
 	ifstream infile;
 	infile.open(filePath.c_str(), ios::in);
 
 	if (!infile) {
-		throw "文件不存在";
+		throw MyException("文件不存在", 2);
 	}
 	string data;
 
@@ -52,7 +78,7 @@ int getwords(string filePath, char* words[]) {
 }
 
 void handleOutput(char* words[], int wordsSize, char type, char h, char t, bool r) {
-	HMODULE module = LoadLibrary("C:\\Users\\superzzy\\programme-zzy\\vs\\run\\core.dll");
+	HMODULE module = LoadLibrary("..\\bin\\core.dll");
 	if (module == NULL) {
 		throw "load core.dll failed\n";
 		return;
@@ -73,6 +99,9 @@ void handleOutput(char* words[], int wordsSize, char type, char h, char t, bool 
 
 	if (type == 'n') {
 		int wordLinksSize = gen_chains_all(words, wordsSize, result);
+		if (wordLinksSize == 0) {
+			throw MyException("无法构成所需单词链", 2);
+		}
 		cout << wordLinksSize;
 		for (int i = 0; i < wordLinksSize; i++) {
 			cout << endl << result[i];
@@ -89,6 +118,9 @@ void handleOutput(char* words[], int wordsSize, char type, char h, char t, bool 
 	}
 	if (type == 'w') {
 		int wordLinksSize = gen_chain_word(words, wordsSize, result, h, t, r);
+		if (wordLinksSize == 0) {
+			throw MyException("无法构成所需单词链", 2);
+		}
 		for (int i = 0; i < wordLinksSize; i++) {
 			fs << result[i];
 			if (i != wordLinksSize - 1) {
@@ -98,6 +130,9 @@ void handleOutput(char* words[], int wordsSize, char type, char h, char t, bool 
 	}
 	else if (type == 'm') {
 		int wordLinksSize = gen_chain_word_unique(words, wordsSize, result);
+		if (wordLinksSize == 0) {
+			throw MyException("无法构成所需单词链", 2);
+		}
 		for (int i = 0; i < wordLinksSize; i++) {
 			fs << result[i];
 			if (i != wordLinksSize - 1) {
@@ -107,6 +142,9 @@ void handleOutput(char* words[], int wordsSize, char type, char h, char t, bool 
 	}
 	else if (type == 'c') {
 		int wordLinksSize = gen_chain_char(words, wordsSize, result, h, t, r);
+		if (wordLinksSize == 0) {
+			throw MyException("无法构成所需单词链", 2);
+		}
 		for (int i = 0; i < wordLinksSize; i++) {
 			fs << result[i];
 			if (i != wordLinksSize - 1) {
@@ -124,7 +162,10 @@ int main(int argc, char* argv[])
 	char h = '0'; //h
 	char t = '0'; //t
 	int r = 0; //r
+	string wstr = "";//wrongStr用于存不正确的参数
+	string rstr = "";//repeatStr用于存重复的有输出参数
 	string filePath;
+	int paraNum = 0;
 
 	try {
 		//处理命令行参数
@@ -132,21 +173,55 @@ int main(int argc, char* argv[])
 			if (argv[count][0] == '-') {
 				if (argv[count][1] == 'n' || argv[count][1] == 'w' || argv[count][1] == 'm' || argv[count][1] == 'c') {
 					type = argv[count][1];
+					paraNum++;
+					rstr = rstr + " " + argv[count][1];
 					//filePath = argv[++count];
 				}
 				else if (argv[count][1] == 'h') {
 					h = argv[++count][0];
+					string m = argv[count];
+					if (m.length() != 1) {
+						throw MyException("h", 5);
+					}
+					else if (!(h <= 'z' && h >= 'a' || h <= 'Z' && h >= 'A')) {
+						throw MyException("h", 5);
+					}
+					if (h <= 'Z') {
+						h = h - 'A' + 'a';
+					}
 				}
 				else if (argv[count][1] == 't') {
 					t = argv[++count][0];
+					string m = argv[count];
+					if (m.length() != 1) {
+						throw MyException("t", 5);
+					}
+					else if (!(t <= 'z' && t >= 'a' || t <= 'Z' && t >= 'A')) {
+						throw MyException("t", 5);
+					}
+					if (t <= 'Z') {
+						t = t - 'A' + 'a';
+					}
 				}
 				else if (argv[count][1] == 'r') {
 					r = 1;
+				}
+				else {
+					wstr = wstr + " " + argv[count][1];
 				}
 			}
 			else {
 				filePath = argv[count];
 			}
+		}
+		if (wstr.length() != 0) {
+			throw MyException(wstr, 1);
+		}
+		else if (paraNum > 1) {
+			throw MyException(rstr, 3);
+		}
+		else if (paraNum == 0) {
+			throw MyException("参数错误，无需要输出的参数", 2);
 		}
 
 		//得到单词数组
@@ -154,6 +229,9 @@ int main(int argc, char* argv[])
 		int wordsSize = getwords(filePath, words);
 		//根据参数处理文件输出 
 		handleOutput(words, wordsSize, type, h, t, r);
+	}
+	catch (MyException& e) {
+		e.what();
 	}
 	catch (const char* msg) {
 		cerr << msg << endl;
