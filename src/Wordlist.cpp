@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS；
 #include <iostream>
 #include <string.h>
 #include <stdio.h>
@@ -6,45 +7,21 @@
 #include <algorithm>
 #include <cstring>
 #include <Windows.h>
+#include "Error.h"
+
 
 using namespace std;
-
-class MyException {
-public:
-	MyException(string s, int flag) : str(s), my_flag(flag) { };
-public:
-	void what() const;  //获取具体的错误信息
-private:
-	string str;
-	int my_flag;
-};
-
-void MyException::what() const {
-	if (my_flag == 1)
-	{
-		cout << "参数错误，未定义的参数名：" << str << endl;
-	}
-	else if (my_flag == 2) {
-		cout << str << endl;
-	}
-	else if (my_flag == 3) {
-		cout << "参数错误，以下参数产生输出冲突：" << str << endl;
-	}
-	else if (my_flag == 5) {
-		cout << "参数" << str << "后非单个英文字母" << endl;
-	}
-}
 
 int getwords(string filePath, char* words[]) {
 	int count = 0;
 	if (filePath.find(".txt") == filePath.npos) {
-		throw MyException("文件不合法", 2);
+		throw file_illegal_exception();
 	}
 	ifstream infile;
 	infile.open(filePath.c_str(), ios::in);
 
 	if (!infile) {
-		throw MyException("文件不存在", 2);
+		throw file_nonexist_exception();
 	}
 	string data;
 
@@ -100,7 +77,7 @@ void handleOutput(char* words[], int wordsSize, char type, char h, char t, bool 
 	if (type == 'n') {
 		int wordLinksSize = gen_chains_all(words, wordsSize, result);
 		if (wordLinksSize == 0) {
-			throw MyException("无法构成所需单词链", 2);
+			throw word_Nochain_exception();
 		}
 		cout << wordLinksSize;
 		for (int i = 0; i < wordLinksSize; i++) {
@@ -119,7 +96,7 @@ void handleOutput(char* words[], int wordsSize, char type, char h, char t, bool 
 	if (type == 'w') {
 		int wordLinksSize = gen_chain_word(words, wordsSize, result, h, t, r);
 		if (wordLinksSize == 0) {
-			throw MyException("无法构成所需单词链", 2);
+			throw word_Nochain_exception();
 		}
 		for (int i = 0; i < wordLinksSize; i++) {
 			fs << result[i];
@@ -131,7 +108,7 @@ void handleOutput(char* words[], int wordsSize, char type, char h, char t, bool 
 	else if (type == 'm') {
 		int wordLinksSize = gen_chain_word_unique(words, wordsSize, result);
 		if (wordLinksSize == 0) {
-			throw MyException("无法构成所需单词链", 2);
+			throw word_Nochain_exception();
 		}
 		for (int i = 0; i < wordLinksSize; i++) {
 			fs << result[i];
@@ -143,7 +120,7 @@ void handleOutput(char* words[], int wordsSize, char type, char h, char t, bool 
 	else if (type == 'c') {
 		int wordLinksSize = gen_chain_char(words, wordsSize, result, h, t, r);
 		if (wordLinksSize == 0) {
-			throw MyException("无法构成所需单词链", 2);
+			throw word_Nochain_exception();
 		}
 		for (int i = 0; i < wordLinksSize; i++) {
 			fs << result[i];
@@ -181,10 +158,10 @@ int main(int argc, char* argv[])
 					h = argv[++count][0];
 					string m = argv[count];
 					if (m.length() != 1) {
-						throw MyException("h", 5);
+						throw para_form_exception();
 					}
 					else if (!(h <= 'z' && h >= 'a' || h <= 'Z' && h >= 'A')) {
-						throw MyException("h", 5);
+						throw para_form_exception();
 					}
 					if (h <= 'Z') {
 						h = h - 'A' + 'a';
@@ -194,10 +171,10 @@ int main(int argc, char* argv[])
 					t = argv[++count][0];
 					string m = argv[count];
 					if (m.length() != 1) {
-						throw MyException("t", 5);
+						throw para_form_exception();
 					}
 					else if (!(t <= 'z' && t >= 'a' || t <= 'Z' && t >= 'A')) {
-						throw MyException("t", 5);
+						throw para_form_exception();
 					}
 					if (t <= 'Z') {
 						t = t - 'A' + 'a';
@@ -215,13 +192,13 @@ int main(int argc, char* argv[])
 			}
 		}
 		if (wstr.length() != 0) {
-			throw MyException(wstr, 1);
+			throw para_undefine_exception();
 		}
 		else if (paraNum > 1) {
-			throw MyException(rstr, 3);
+			throw para_conflict_exception();
 		}
 		else if (paraNum == 0) {
-			throw MyException("参数错误，无需要输出的参数", 2);
+			throw para_nonout_exception();
 		}
 
 		//得到单词数组
@@ -230,8 +207,8 @@ int main(int argc, char* argv[])
 		//根据参数处理文件输出 
 		handleOutput(words, wordsSize, type, h, t, r);
 	}
-	catch (MyException& e) {
-		e.what();
+	catch (exception& e) {
+		cerr << e.what() << endl;
 	}
 	catch (const char* msg) {
 		cerr << msg << endl;
