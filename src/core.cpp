@@ -92,6 +92,16 @@ int getOneLink(Edge* edge[26][26], int r, int bline, vector<vector<int>>& edgeWe
 int getWordLinks(char* words[], int wordsSize, char h, char t, int r, string wordLinks[]) {
 	Edge* edge[26][26];
 	vector<vector<int>> edgeWeight(26);//二维数组，记录各首字母开头的单词个数，便于查找是否存在这样的词，并记录这些词的尾字母。
+	if (h != '0') {
+		if (!(h <= 'z' && h >= 'a' || h <= 'Z' && h >= 'A')) {
+			throw "h后非英语字母";
+		}
+	}
+	if (t != '0') {
+		if (!(t <= 'z' && t >= 'a' || t <= 'Z' && t >= 'A')) {
+			throw "t后非英语字母";
+		}
+	}
 
 	for (int i = 0; i < 26; i++) {
 		for (int j = 0; j < 26; j++) {
