@@ -92,12 +92,12 @@ int getOneLink(Edge* edge[26][26], int r, int bline, vector<vector<int>>& edgeWe
 int getWordLinks(char* words[], int wordsSize, char h, char t, int r, string wordLinks[]) {
 	Edge* edge[26][26];
 	vector<vector<int>> edgeWeight(26);//二维数组，记录各首字母开头的单词个数，便于查找是否存在这样的词，并记录这些词的尾字母。
-	if (h != '0') {
+	if (h != '0' || h != 0) {
 		if (!(h <= 'z' && h >= 'a' || h <= 'Z' && h >= 'A')) {
 			throw "h后非英语字母";
 		}
 	}
-	if (t != '0') {
+	if (t != '0' || h != 0) {
 		if (!(t <= 'z' && t >= 'a' || t <= 'Z' && t >= 'A')) {
 			throw "t后非英语字母";
 		}
@@ -166,7 +166,9 @@ int gen_chain_word(char* words[], int len, char* result[], char head, char tail,
 			maxIndex = i;
 		}
 	}
-	stringToChars(wordLinks[maxIndex], result);
+	if (maxIndex >= 0) {
+		stringToChars(wordLinks[maxIndex], result);
+	}
 	return maxCount;
 }
 
@@ -216,7 +218,9 @@ int gen_chain_word_unique(char* words[], int len, char* result[]) { //首字母不同
 			maxIndex = i;
 		}
 	}
-	stringToChars(wordLinks[maxIndex], result);
+	if (maxIndex >= 0) {
+		stringToChars(wordLinks[maxIndex], result);
+	}
 	return maxCount;
 }
 
@@ -236,6 +240,8 @@ int gen_chain_char(char* words[], int len, char* result[], char head, char tail,
 			maxIndex = i;
 		}
 	}
-	stringToChars(wordLinks[maxIndex], result);
+	if (maxIndex >= 0) {
+		stringToChars(wordLinks[maxIndex], result);
+	}
 	return maxCount;
 }
